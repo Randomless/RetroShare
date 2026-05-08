@@ -24,8 +24,6 @@ After download, the payload layout is expected to be:
 retroshare-artifact/
   bin/retroshare-service
   lib/libretroshare.so*
-  lib/librnp.so*
-  lib/libsexpp.so*
   share/retroshare/webui/
   deploy/retroshare.service
   README-DEPLOY.md
@@ -127,8 +125,8 @@ http://127.0.0.1:9092/index.html
 
 ## 6. Important notes
 
-- This workflow builds the CMake headless service target with `RS_JSON_API`,
-  `RS_WEBUI`, and `RS_RNPLIB`.
+- This workflow builds the CMake headless service target with `RS_JSON_API`
+  and `RS_WEBUI`.
 - It does not enable `rs_autologin`; the service still expects an already
   bootstrapped profile and a password-capable first run.
 - The artifact intentionally ships the Web UI static files in
