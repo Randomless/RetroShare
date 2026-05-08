@@ -24,6 +24,8 @@ After download, the payload layout is expected to be:
 retroshare-artifact/
   bin/retroshare-service
   lib/libretroshare.so*
+  lib/librnp.so*
+  lib/libsexpp.so*
   share/retroshare/webui/
   deploy/retroshare.service
   README-DEPLOY.md
@@ -130,5 +132,5 @@ http://127.0.0.1:9092/index.html
 - It does not enable `rs_autologin`; the service still expects an already
   bootstrapped profile and a password-capable first run.
 - The artifact intentionally ships the Web UI static files in
-  `share/retroshare/webui/`. Shipping only `retroshare-service` and
-  `libretroshare.so` is not enough for Web UI deployment.
+  `share/retroshare/webui/`. Shipping only `retroshare-service` and the core
+  shared libraries is not enough for Web UI deployment.

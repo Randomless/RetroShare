@@ -58,6 +58,7 @@ jobs:
                 libbotan-2-dev
 
               git config --global --add safe.directory /workspace
+              git config --global --add safe.directory /workspace/supportlibs/librnp
               git config --global --add safe.directory /workspace/supportlibs/restbed
 
               git submodule update --init --remote --force \
@@ -72,7 +73,19 @@ jobs:
                 supportlibs/rapidjson
 
               rm -rf /workspace/.ci-artifacts
-              mkdir -p /workspace/.ci-artifacts/build /workspace/.ci-artifacts/stage
+              mkdir -p \
+                /workspace/.ci-artifacts/build/supportlibs/librnp/Build \
+                /workspace/.ci-artifacts/build \
+                /workspace/.ci-artifacts/stage
+
+              cmake -S /workspace/supportlibs/librnp -B /workspace/.ci-artifacts/build/supportlibs/librnp/Build \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/usr/local \
+                -DBUILD_SHARED_LIBS=ON \
+                -DBUILD_TESTING=OFF
+              cmake --build /workspace/.ci-artifacts/build/supportlibs/librnp/Build --parallel "$(nproc)"
+              cmake --install /workspace/.ci-artifacts/build/supportlibs/librnp/Build
+              ldconfig
 
               cd /workspace/.ci-artifacts/build
               cmake -S /workspace/retroshare-service -B . \
@@ -86,8 +99,14 @@ jobs:
 
               cmake --build . --parallel "$(nproc)"
               DESTDIR=/workspace/.ci-artifacts/stage cmake --install .
+              mkdir -p /workspace/.ci-artifacts/stage/usr/local/lib
+              find /usr/local/lib /usr/local/lib64 \
+                -maxdepth 1 \
+                \( -name "librnp*.so*" -o -name "libsexpp*.so*" \) \
+                -exec cp -a {} /workspace/.ci-artifacts/stage/usr/local/lib/ \; \
+                2>/dev/null || true
 
-              ldd retroshare-service \
+              LD_LIBRARY_PATH=/usr/local/lib ldd retroshare-service \
                 > /workspace/.ci-artifacts/ldd-retroshare-service.txt
             '
 
@@ -105,6 +124,12 @@ jobs:
           cp -a "${PREFIX}/bin/retroshare-service" "${OUT}/bin/"
           if compgen -G "${PREFIX}/lib/libretroshare*.so*" > /dev/null; then
             cp -a "${PREFIX}/lib"/libretroshare*.so* "${OUT}/lib/"
+          fi
+          if compgen -G "${PREFIX}/lib/librnp*.so*" > /dev/null; then
+            cp -a "${PREFIX}/lib"/librnp*.so* "${OUT}/lib/"
+          fi
+          if compgen -G "${PREFIX}/lib/libsexpp*.so*" > /dev/null; then
+            cp -a "${PREFIX}/lib"/libsexpp*.so* "${OUT}/lib/"
           fi
           cp -a "${PREFIX}/share/retroshare/webui" "${OUT}/share/retroshare/"
 
