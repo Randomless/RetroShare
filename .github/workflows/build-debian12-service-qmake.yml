@@ -35,8 +35,10 @@ jobs:
   
       - name: Build with qmake  
         run: |  
-          qmake CONFIG+=release  CONFIG+=rs_jsonapi  CONFIG+=rs_webui CONFIG+=no_retroshare_gui  
+          echo "=== [Start] Building RetroShare Service (no GUI, no WebUI) ==="
+          qmake CONFIG+=release  CONFIG+=rs_jsonapi  CONFIG+=rs_webui 
           make -j$(nproc)  
+          echo "=== [End] Building RetroShare Service (no GUI, no WebUI) ==="
   
       - name: Collect artifact  
         run: |  
