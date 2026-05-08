@@ -1,0 +1,131 @@
+name: Build Debian 12 Headless Service
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debian12-service:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build in Debian 12 container
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/workspace" \
+            -w /workspace \
+            debian:bookworm \
+            bash -lc '
+              set -euxo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                ca-certificates \
+                git \
+                build-essential \
+                cmake \
+                pkg-config \
+                qt5-qmake \
+                qtbase5-dev \
+                qttools5-dev-tools \
+                qtmultimedia5-dev \
+                libqt5x11extras5-dev \
+                libssl-dev \
+                libsqlcipher-dev \
+                libupnp-dev \
+                libspeex-dev \
+                libspeexdsp-dev \
+                libxslt1-dev \
+                libjson-c-dev \
+                rapidjson-dev \
+                libcurl4-openssl-dev \
+                libmicrohttpd-dev \
+                libxss-dev \
+                libsecret-1-dev \
+                libbz2-dev \
+                libasio-dev \
+                libbotan-2-dev
+
+              git config --global --add safe.directory /workspace
+
+              git submodule update --init --remote --force \
+                libbitdht/ \
+                libretroshare/ \
+                openpgpsdk/ \
+                retroshare-webui/
+
+              git submodule update --init --force \
+                supportlibs/librnp \
+                supportlibs/restbed \
+                supportlibs/rapidjson
+
+              git -C supportlibs/restbed submodule update --init \
+                dependency/asio \
+                dependency/kashmir
+
+              rm -rf /workspace/.ci-artifacts
+              mkdir -p /workspace/.ci-artifacts/build /workspace/.ci-artifacts/stage
+
+              cd /workspace/.ci-artifacts/build
+              qmake /workspace/RetroShare.pro \
+                "CONFIG-=debug" \
+                "CONFIG+=release" \
+                "CONFIG+=rs_jsonapi" \
+                "CONFIG+=rs_webui" \
+                "CONFIG+=rs_autologin" \
+                "CONFIG+=no_retroshare_plugins" \
+                "CONFIG+=no_retroshare_friendserver"
+
+              make -j"$(nproc)"
+              make install INSTALL_ROOT=/workspace/.ci-artifacts/stage
+
+              ldd retroshare-service/src/retroshare-service \
+                > /workspace/.ci-artifacts/ldd-retroshare-service.txt
+            '
+
+      - name: Assemble artifact payload
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          PREFIX=".ci-artifacts/stage/usr/local"
+          OUT=".ci-artifacts/retroshare-debian12-service"
+
+          rm -rf "${OUT}"
+          mkdir -p "${OUT}/bin" "${OUT}/lib" "${OUT}/share/retroshare" "${OUT}/deploy"
+
+          cp -a "${PREFIX}/bin/retroshare-service" "${OUT}/bin/"
+          cp -a "${PREFIX}/lib"/libretroshare*.so* "${OUT}/lib/"
+          cp -a "${PREFIX}/share/retroshare/webui" "${OUT}/share/retroshare/"
+
+          cp "build_scripts/Debian+Ubuntu/RetroShareHeadlessDeployment.md" \
+            "${OUT}/README-DEPLOY.md"
+          cp "build_scripts/Debian+Ubuntu/retroshare-headless.service" \
+            "${OUT}/deploy/retroshare.service"
+          cp ".ci-artifacts/ldd-retroshare-service.txt" "${OUT}/deploy/"
+
+          {
+            echo "git_commit=$(git rev-parse HEAD)"
+            echo "build_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "${OUT}/deploy/build-info.txt"
+
+          find "${OUT}" \( -type f -o -type l \) | sort > "${OUT}/deploy/manifest.txt"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retroshare-debian12-service
+          path: .ci-artifacts/retroshare-debian12-service
+          if-no-files-found: error
+          retention-days: 14

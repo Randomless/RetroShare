@@ -1,0 +1,24 @@
+[Unit]
+Description=RetroShare Headless Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=retroshare
+Group=retroshare
+WorkingDirectory=/var/lib/retroshare
+StateDirectory=retroshare
+LogsDirectory=retroshare
+Environment=LD_LIBRARY_PATH=/opt/retroshare-headless/lib
+ExecStart=/opt/retroshare-headless/bin/retroshare-service --base-dir /var/lib/retroshare --log-file /var/log/retroshare/retroshare-service.log --jsonApiPort 9092 --jsonApiBindAddress 127.0.0.1 --webui-directory /opt/retroshare-headless/share/retroshare/webui --auto-login
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/retroshare /var/log/retroshare
+
+[Install]
+WantedBy=multi-user.target
