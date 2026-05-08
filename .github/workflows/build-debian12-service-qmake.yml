@@ -26,11 +26,11 @@ jobs:
         with:  
           persist-credentials: false  
   
-- name: Init submodules
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git submodule update --init --remote --force libbitdht/ libretroshare/ openpgpsdk/ retroshare-webui/
-          git submodule update --init --force supportlibs/librnp supportlibs/restbed supportlibs/rapidjson
+      - name: Init submodules  
+        run: |  
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"  
+          git submodule update --init --remote libbitdht/ libretroshare/ openpgpsdk/ retroshare-webui/ 
+          git submodule update --init --remote supportlibs/librnp supportlibs/restbed supportlibs/rapidjson
   
       - name: Build with qmake  
         run: |  
