@@ -1,0 +1,15 @@
+# your-project/.codex/rules/git.rules
+
+# 允许执行 git add 命令
+prefix_rule(
+    pattern = ["git", "add"],
+    decision = "allow",
+    justification = "项目版本控制，允许自动执行。"
+)
+
+# 允许执行 git commit -m 命令
+prefix_rule(
+    pattern = ["git", "commit", "-m"],
+    decision = "allow",
+    justification = "项目版本控制，允许自动执行。"
+)
