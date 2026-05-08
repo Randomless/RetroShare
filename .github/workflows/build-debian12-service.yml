@@ -36,11 +36,10 @@ jobs:
                 build-essential \
                 cmake \
                 pkg-config \
-                qt5-qmake \
-                qtbase5-dev \
-                qttools5-dev-tools \
-                qtmultimedia5-dev \
-                libqt5x11extras5-dev \
+                libminiupnpc-dev \
+                libsqlite3-dev \
+                libxapian-dev \
+                libz-dev \
                 libssl-dev \
                 libsqlcipher-dev \
                 libupnp-dev \
@@ -75,19 +74,18 @@ jobs:
               mkdir -p /workspace/.ci-artifacts/build /workspace/.ci-artifacts/stage
 
               cd /workspace/.ci-artifacts/build
-              qmake /workspace/RetroShare.pro \
-                "CONFIG-=debug" \
-                "CONFIG+=release" \
-                "CONFIG+=rs_jsonapi" \
-                "CONFIG+=rs_webui" \
-                "CONFIG+=rs_autologin" \
-                "CONFIG+=no_retroshare_plugins" \
-                "CONFIG+=no_retroshare_friendserver"
+              cmake -S /workspace/retroshare-service -B . \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/usr/local \
+                -DRS_JSON_API=ON \
+                -DRS_WEBUI=ON \
+                -DRS_SERVICE_TERMINAL_LOGIN=ON \
+                -DRS_SERVICE_TERMINAL_WEBUI_PASSWORD=ON
 
-              make -j"$(nproc)"
-              make install INSTALL_ROOT=/workspace/.ci-artifacts/stage
+              cmake --build . --parallel "$(nproc)"
+              DESTDIR=/workspace/.ci-artifacts/stage cmake --install .
 
-              ldd retroshare-service/src/retroshare-service \
+              ldd retroshare-service \
                 > /workspace/.ci-artifacts/ldd-retroshare-service.txt
             '
 
