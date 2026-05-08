@@ -35,6 +35,7 @@ jobs:
                 git \
                 build-essential \
                 cmake \
+                doxygen \
                 pkg-config \
                 libminiupnpc-dev \
                 libsqlite3-dev \
