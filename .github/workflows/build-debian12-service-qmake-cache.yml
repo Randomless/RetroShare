@@ -1,0 +1,78 @@
+name: Build RetroShare Service (qmake, Debian Bookworm)  cache
+# 影子构建
+# mkdir -p build && cd build 之后 qmake .. && make，所有中间文件和最终二进制都在 build/ 内，而源码区保持干净。
+# 这确保了缓存路径 build 只包含编译产物，不会错误覆盖任何源码。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-service:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+
+    steps:
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          set -x
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git g++ make cmake pkg-config doxygen
+          apt-get install -y libbz2-dev libjson-c-dev libssl-dev libsqlcipher-dev libupnp-dev libxss-dev
+          apt-get install -y rapidjson-dev libbotan-2-dev libasio-dev
+          apt-get install -y qt5-qmake qtmultimedia5-dev libqt5x11extras5-dev
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Init submodules
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git submodule update --init --remote libbitdht/ libretroshare/ openpgpsdk/ retroshare-webui/
+          git submodule update --init --remote supportlibs/librnp supportlibs/restbed supportlibs/rapidjson
+
+      # ------------------- 缓存恢复 -------------------
+      - name: Cache build directory
+        id: cache-build
+        uses: actions/cache@v4
+        with:
+          path: build # 独立的构建目录
+          key: retroshare-build-${{ runner.os }}-${{ hashFiles('src/**/*.cpp', 'src/**/*.h', '**/*.pro', '**/*.pri') }}-${{ hashFiles('.git/modules/**/HEAD') }}
+
+      # ------------------- 编译 -------------------
+      - name: Build with qmake
+        run: |
+          mkdir -p build
+          cd build
+          # 如果缓存已恢复，qmake 仍然会快速重写 Makefile（但不会影响 .o 文件时间戳）
+          qmake CONFIG+=release CONFIG+=rs_jsonapi CONFIG+=rs_webui ..
+          make -j$(nproc)
+        # 仅当缓存未命中，或源码有变化时才真正编译
+
+      # ------------------- 收集产物 -------------------
+      - name: Collect artifact
+        run: |
+          ARTIFACT_DIR=".ci-artifacts/retroshare-debian12-service"
+          mkdir -p "$ARTIFACT_DIR/bin"
+          mkdir -p "$ARTIFACT_DIR/share/retroshare"
+          # 注意：二进制现在位于 build/ 下对应子目录
+          cp build/retroshare-service/src/retroshare-service "$ARTIFACT_DIR/bin/"
+          if [ -d build/retroshare-webui/dist ]; then
+            cp -r build/retroshare-webui/dist "$ARTIFACT_DIR/share/retroshare/webui"
+          fi
+          echo "git_commit=$(git rev-parse HEAD)" > "$ARTIFACT_DIR/build-info.txt"
+          echo "build_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$ARTIFACT_DIR/build-info.txt"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retroshare-debian12-service-qmake
+          path: .ci-artifacts/retroshare-debian12-service
+          if-no-files-found: error
+          retention-days: 14
