@@ -125,10 +125,10 @@ http://127.0.0.1:9092/index.html
 
 ## 6. Important notes
 
-- This workflow enables `rs_jsonapi`, `rs_webui`, and `rs_autologin`.
-- `rs_autologin` is included because a background `systemd` service cannot
-  stop for terminal password prompts. Treat that tradeoff as intentional and
-  protect the server accordingly.
+- This workflow builds the CMake headless service target with `RS_JSON_API`,
+  `RS_WEBUI`, and `RS_RNPLIB`.
+- It does not enable `rs_autologin`; the service still expects an already
+  bootstrapped profile and a password-capable first run.
 - The artifact intentionally ships the Web UI static files in
   `share/retroshare/webui/`. Shipping only `retroshare-service` and
   `libretroshare.so` is not enough for Web UI deployment.

@@ -78,6 +78,7 @@ jobs:
               cmake -S /workspace/retroshare-service -B . \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/usr/local \
+                -DRS_RNPLIB=ON \
                 -DRS_JSON_API=ON \
                 -DRS_WEBUI=ON \
                 -DRS_SERVICE_TERMINAL_LOGIN=ON \
@@ -102,7 +103,9 @@ jobs:
           mkdir -p "${OUT}/bin" "${OUT}/lib" "${OUT}/share/retroshare" "${OUT}/deploy"
 
           cp -a "${PREFIX}/bin/retroshare-service" "${OUT}/bin/"
-          cp -a "${PREFIX}/lib"/libretroshare*.so* "${OUT}/lib/"
+          if compgen -G "${PREFIX}/lib/libretroshare*.so*" > /dev/null; then
+            cp -a "${PREFIX}/lib"/libretroshare*.so* "${OUT}/lib/"
+          fi
           cp -a "${PREFIX}/share/retroshare/webui" "${OUT}/share/retroshare/"
 
           cp "build_scripts/Debian+Ubuntu/RetroShareHeadlessDeployment.md" \
