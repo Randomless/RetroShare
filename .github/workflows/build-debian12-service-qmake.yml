@@ -1,0 +1,62 @@
+name: Build RetroShare Service (qmake in Debian Bookworm)  
+  
+on:  
+  workflow_dispatch:  
+  push:  
+    paths:  
+      - 'retroshare-service/**'  
+      - 'libretroshare/**'  
+      - 'supportlibs/**'  
+  
+jobs:  
+  build-service:  
+    runs-on: ubuntu-latest  
+      
+    steps:  
+      - name: Checkout repository  
+        uses: actions/checkout@v4  
+        with:  
+          submodules: recursive  
+        
+      - name: Build in Debian Bookworm container  
+        shell: bash  
+        run: |  
+          docker run --rm \  
+            -v "${GITHUB_WORKSPACE}:/workspace" \  
+            -w /workspace \  
+            debian:bookworm \  
+            bash -lc '  
+              set -euxo pipefail  
+              export DEBIAN_FRONTEND=noninteractive  
+  
+              # 更新包列表并安装依赖  
+              apt-get update  
+              apt-get install -y --no-install-recommends \  
+                git g++ cmake \  
+                qt5-qmake qtmultimedia5-dev libqt5x11extras5-dev \  
+                libbz2-dev libjson-c-dev libssl-dev libsqlcipher-dev \  
+                libupnp-dev rapidjson-dev libasio-dev libbotan-2-dev \  
+                libminiupnpc-dev libxapian-dev libz-dev \  
+                doxygen pkg-config libxss-dev libsecret-1-dev \  
+                libxml2-dev libxslt1-dev libcurl4-openssl-dev  
+  
+              # 构建 RetroShare  
+              qmake CONFIG+=release \  
+                    CONFIG+=rs_jsonapi \  
+                    CONFIG+=rs_webui \  
+                    CONFIG+=no_retroshare_gui  
+              make -j$(nproc)  
+            '  
+        
+      - name: Package artifact  
+        run: |  
+          mkdir -p retroshare-service-debian/{bin,share/retroshare}  
+          cp retroshare-service/src/retroshare-service retroshare-service-debian/bin/  
+          cp -r retroshare-webui/dist/* retroshare-service-debian/share/retroshare/ 2>/dev/null || true  
+            
+      - name: Upload artifact  
+        uses: actions/upload-artifact@v4  
+        with:  
+          name: retroshare-service-debian  
+          path: retroshare-service-debian/  
+          retention-days: 30
