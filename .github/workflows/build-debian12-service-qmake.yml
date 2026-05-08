@@ -42,18 +42,15 @@ jobs:
   
       - name: Collect artifact  
         run: |  
-          mkdir -p .ci-artifacts/retroshare-debian12-service/bin  
-          mkdir -p .ci-artifacts/retroshare-debian12-service/share/retroshare  
-          cp retroshare-service/src/retroshare-service \  
-            .ci-artifacts/retroshare-debian12-service/bin/  
+          ARTIFACT_DIR=".ci-artifacts/retroshare-debian12-service"  
+          mkdir -p "$ARTIFACT_DIR/bin"  
+          mkdir -p "$ARTIFACT_DIR/share/retroshare"  
+          cp retroshare-service/src/retroshare-service "$ARTIFACT_DIR/bin/"  
           if [ -d retroshare-webui/dist ]; then  
-            cp -r retroshare-webui/dist \  
-              .ci-artifacts/retroshare-debian12-service/share/retroshare/webui  
+            cp -r retroshare-webui/dist "$ARTIFACT_DIR/share/retroshare/webui"  
           fi  
-          echo "git_commit=$(git rev-parse HEAD)" \  
-            > .ci-artifacts/retroshare-debian12-service/build-info.txt  
-          echo "build_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \  
-            >> .ci-artifacts/retroshare-debian12-service/build-info.txt  
+          echo "git_commit=$(git rev-parse HEAD)" > "$ARTIFACT_DIR/build-info.txt"  
+          echo "build_time_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$ARTIFACT_DIR/build-info.txt"  
   
       - name: Upload artifact  
         uses: actions/upload-artifact@v4  
