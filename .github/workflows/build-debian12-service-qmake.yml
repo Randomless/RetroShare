@@ -19,23 +19,7 @@ jobs:
         run: |  
           set -x  
           apt-get update  
-          apt-get install -y --no-install-recommends \  
-            ca-certificates \  
-            git \  
-            g++ \  
-            make \  
-            cmake \  
-            pkg-config \  
-            doxygen \  
-            libbz2-dev \
-            libjson-c-dev \
-            libssl-dev \
-            libsqlcipher-dev \
-            libupnp-dev \
-            libxss-dev \
-            librapidjson-dev \
-            libbotan-2-dev \
-            libasio-dev
+          apt-get install -y --no-install-recommends ca-certificates git g++ make cmake pkg-config doxygen libbz2-dev libjson-c-dev libssl-dev libsqlcipher-dev libupnp-dev libxss-dev librapidjson-dev libbotan-2-dev libasio-dev
   
       - name: Checkout repository  
         uses: actions/checkout@v4  
