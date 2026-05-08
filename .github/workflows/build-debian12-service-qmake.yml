@@ -34,10 +34,7 @@ jobs:
   
       - name: Build with qmake  
         run: |  
-          qmake CONFIG+=release \  
-                CONFIG+=rs_jsonapi \  
-                CONFIG+=rs_webui \  
-                CONFIG+=no_retroshare_gui  
+          qmake CONFIG+=release  CONFIG+=rs_jsonapi  CONFIG+=rs_webui CONFIG+=no_retroshare_gui  
           make -j$(nproc)  
   
       - name: Collect artifact  
