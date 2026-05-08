@@ -59,8 +59,6 @@ jobs:
 
               git config --global --add safe.directory /workspace
               git config --global --add safe.directory /workspace/supportlibs/restbed
-              git config --global --add safe.directory /workspace/supportlibs/restbed/dependency/asio
-              git config --global --add safe.directory /workspace/supportlibs/restbed/dependency/kashmir
 
               git submodule update --init --remote --force \
                 libbitdht/ \
@@ -72,10 +70,6 @@ jobs:
                 supportlibs/librnp \
                 supportlibs/restbed \
                 supportlibs/rapidjson
-
-              git -C /workspace/supportlibs/restbed submodule update --init \
-                dependency/asio \
-                dependency/kashmir
 
               rm -rf /workspace/.ci-artifacts
               mkdir -p /workspace/.ci-artifacts/build /workspace/.ci-artifacts/stage
