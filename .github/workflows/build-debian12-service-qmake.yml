@@ -26,25 +26,15 @@ jobs:
             cmake \  
             pkg-config \  
             doxygen \  
-            qt5-qmake \  
-            qtmultimedia5-dev \  
-            libqt5x11extras5-dev \  
-            libbz2-dev \  
-            libjson-c-dev \  
-            libssl-dev \  
-            libsqlcipher-dev \  
-            libupnp-dev \  
-            rapidjson-dev \  
-            libasio-dev \  
-            libbotan-2-dev \  
-            libminiupnpc-dev \  
-            libxapian-dev \  
-            zlib1g-dev \  
-            libxss-dev \  
-            libsecret-1-dev \  
-            libxml2-dev \  
-            libxslt1-dev \  
-            libcurl4-openssl-dev  
+            libbz2-dev \
+            libjson-c-dev \
+            libssl-dev \
+            libsqlcipher-dev \
+            libupnp-dev \
+            libxss-dev \
+            rapidjson-dev \
+            libbotan-2-dev \
+            libasio-dev
   
       - name: Checkout repository  
         uses: actions/checkout@v4  
