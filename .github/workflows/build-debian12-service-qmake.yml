@@ -17,6 +17,7 @@ jobs:
         env:  
           DEBIAN_FRONTEND: noninteractive  
         run: |  
+          set -x  
           apt-get update  
           apt-get install -y --no-install-recommends \  
             ca-certificates \  
@@ -32,7 +33,7 @@ jobs:
             libsqlcipher-dev \
             libupnp-dev \
             libxss-dev \
-            rapidjson-dev \
+            librapidjson-dev \
             libbotan-2-dev \
             libasio-dev
   
